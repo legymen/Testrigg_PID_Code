@@ -1,29 +1,36 @@
 #include <Wire.h>
 #include <Servo.h>
-
-const float BIAS_POWER = 35;
+// 16:23 2025-01-29.
+const float BIAS_POWER = 60;
 const float DESIRED_ANGLE = 0;
-const float MAX_MOTOR_POWER = 50;
+const float MAX_MOTOR_POWER = 90;
 
 const int POT_PIN_KP = A0;
 const int POT_PIN_KI = A1;
 const int POT_PIN_KD = A2;
 const int ESC_PWM_PIN = 11;
+const int ZERO_BTN_PIN = 5;
 
-float Kp = 0;
-float Ki = 0;
-float Kd = 0;
+float Kp = 1;
+float Ki = 1;
+float Kd = 1;
+
+const float D_ALPHA = 0.15;
 
 Servo ESC;
 
 float roll;
 float pitch;
-float measuredAngle, error, previousError, deltaError, sumError, pidPower;
+float measuredAngle, error, previousError, deltaError, sumError, pidPower, D, dt;
+float previousDerivative = 0;
+float now;
+float lasttime;
 
 void setup() {
   sumError = 0;
+  pinMode(ZERO_BTN_PIN, INPUT_PULLUP);
 
-  Serial.begin(9600);
+  Serial.begin(921600);
   Serial.println("Initializing ...");
   startgyro(); // Kalibrerar även gyron.
 
@@ -33,43 +40,66 @@ void setup() {
   delay(4000);
 
   Serial.println("Lets go!");
+  lasttime = micros();
 }
 
 void loop() {
+  now = micros();
+  dt = (now - lasttime) / 1000000;
+  lasttime = now;
+
   Kp = analogRead(POT_PIN_KP); 
-  Kd = analogRead(POT_PIN_KD);
+  Kp /= (1023 / 80);
+
   Ki = analogRead(POT_PIN_KI);
-  
-  
+  Ki /= (1023 / 37);
+
+  Kd = analogRead(POT_PIN_KD);
+  Kd /= (1023 / 20);
+
+  if (digitalRead(ZERO_BTN_PIN) == HIGH) {
+    sumError = 0;
+  }
+
   getangles(pitch, roll);
   measuredAngle = (-1) * roll;
 
   error = DESIRED_ANGLE - measuredAngle;
-  deltaError = error - previousError;
-  previousError = error;
-  sumError = sumError + error;
+  sumError += error * dt;
+  sumError = constrain(sumError, -40000, 40000);
 
-  pidPower = BIAS_POWER + Kp * error + Ki * sumError + Kd * deltaError;
+  float rawDerivative = (error - previousError) / dt;
+  float P = Kp * error;
+  float I = Ki * sumError;
+  D = Kd * ((D_ALPHA * previousDerivative) + ((1 - D_ALPHA) * rawDerivative));
+
+  previousError = error;
+  previousDerivative = rawDerivative;
+
+  pidPower = P + I + D;
   pidPower = constrain(pidPower, -3000, 3000);
-  pidPower = map(pidPower, -3000, 3000, -BIAS_POWER, MAX_MOTOR_POWER - BIAS_POWER) + BIAS_POWER;
+  // Ta kanske bort BIAS_POWER från mapen?
+  pidPower = map(pidPower, -3000, 3000, -BIAS_POWER, 180 - BIAS_POWER) + BIAS_POWER;
+  pidPower = constrain(pidPower, 0, MAX_MOTOR_POWER);
   ESC.write(pidPower); 
 
   schreibeinformation();
+  delay(30);
 }
 
 void schreibeinformation()
 {
   Serial.print(Kp, 2);
   Serial.print(", ");
-  Serial.print(Ki, 5);
+  Serial.print(Ki, 2);
   Serial.print(", ");
-  Serial.print(Kd, 5);
+  Serial.print(Kd, 2);
   Serial.print(", ");
   Serial.print(error, 1);
   Serial.print(", ");
   Serial.print(sumError, 1);
   Serial.print(", ");
-  Serial.print(deltaError, 1);
+  Serial.print(dt, 6);
   Serial.print(", ");
   Serial.println(pidPower);
 }
