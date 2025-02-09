@@ -1,3 +1,7 @@
+// This is the code for operating a prototype of a PID regulator
+// rest rig. Constructed in 2025 by TE23 and their teacher
+
+
 #include <Wire.h>
 #include <Servo.h>
 
