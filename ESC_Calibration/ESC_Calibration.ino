@@ -22,12 +22,13 @@ void loop() {
 
   switch (data) {
     // 1
-    case 49 : Serial.println("Sending MAX throttle. Connect ESC to battery, wait for the beeps, then press 2 to continue.");
-              ESC.writeMicroseconds(MAX_MS);
+    case 49 : Serial.println("Sending MIN throttle");
+              ESC.writeMicroseconds(MIN_MS);
     break;
     // 2
-    case 50 : Serial.println("Sending MIN throttle");
-              ESC.writeMicroseconds(MIN_MS);
+    case 50 : 
+              Serial.println("Sending MAX throttle. Connect ESC to battery, wait for the beeps, then press 2 to continue.");
+              ESC.writeMicroseconds(MAX_MS);
     break;
     // 3
     case 51 : Serial.println("Testing different levels.");
