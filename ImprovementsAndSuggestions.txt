@@ -1,0 +1,7 @@
+Förbättringsförslag för nästa version
+
+Fysisk konstruktion
+1. Bättre fäste av stöden
+2. Plats för tyngder
+
+Kod/funktioner
