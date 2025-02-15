@@ -20,12 +20,28 @@ class Graph {
 
         // Create axes
         line(xpos, ypos, xpos + length, ypos); // x-axis
-        line(xpos, ypos - axisheight, xpos, ypos + axisheight);
+        line(xpos, ypos - axisheight, xpos, ypos + axisheight); // y-axis
+
+        // Create markers
+        float mlength = axisheight/40;
+        // in dir(x):
+        for (float i = xpos + length/20; i < xpos + length; i += length/20)
+        {
+            line(i, ypos - mlength, i, ypos + mlength);
+        }
+        // in dir(y):
+        for (float i = axisheight / 10; i < axisheight; i += axisheight / 10)
+        {
+            line(xpos - mlength, ypos +  i, xpos + mlength, ypos + i);
+            line(xpos - mlength, ypos - i, xpos + mlength, ypos - i);
+        }
 
         // Render text.
-        text(id, xpos + length/2, ypos - axisheight);
+        textSize(15);
         text(xlabel, xpos + length + (length/10), ypos);
         text(ylabel, xpos, ypos -axisheight - (axisheight/10));
+        textSize(20);
+        text(id, xpos + length/2, ypos - axisheight/0.9);
 
         // Plot graph between datapoints.
         pushMatrix();
