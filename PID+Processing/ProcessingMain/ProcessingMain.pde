@@ -3,9 +3,10 @@ import processing.serial.*;
 // Arduino variables.
 Serial myPort;
 String indata; // Value from Serial port.
-String data;
+String datastr;
 String timestr;
-int time;
+int data;
+float time;
 
 ArrayList<Graph> graphs;
 PVector epoint;
@@ -25,8 +26,7 @@ void setup()
     textfont = createFont("CascadiaCode.ttf", 18);
     textFont(textfont);
 
-    while (arduinoinit(921600) != 0);
-    delay(1000);
+    while (arduinoinit(921600) != 0) {delay(2000);};
 
     graphs = new ArrayList<Graph>();
     graphs.add(new Graph(width/8, height/4, "Error", "e [deg]", "time [s]"));
@@ -41,23 +41,29 @@ void draw()
     for (int i = 0; i < graphs.size(); i++)
     {
         Graph current = graphs.get(i);
+        println(time);
+        epoint = new PVector(time, data);
+        current.updatevalues(epoint);
         if (current.show); current.plot();
     }
+
 }
 
 int arduinoinit(int baudRate) {
-    String portName = "COM3"; // Change the number (in this case) to match the corresponding port number connected to your Arduino.    
     try 
     {
-        myPort = new Serial(this, portName, baudRate);
+        myPort = new Serial(this, Serial.list()[0], baudRate);
     }
     catch (Exception RuntimeException)
     {
-        println("Port " + portName + " not found. Is the Arduino connected to the correct port?");
+        println("Port not found. Is the Arduino connected to the correct port?");
         return 1;
     }
 
-    println("Arduino found on port " + portName, ". Baud Rate: " + baudRate);
+    println("Arduino found. Baud Rate: " + baudRate, "Please wait.");
+    // TODO: Send clear-signal to Arduino.
+    delay(2000);
+    myPort.clear();
     return 0;
 }
 
@@ -68,34 +74,20 @@ void getserialinput()
     if (myPort.available() > 0) 
     {  
         indata = myPort.readStringUntil('\n');
-        data = readbetween(indata,'D','t');
+        datastr = readbetween(indata,'d','t');
         timestr = readbetween(indata, 't', '\n');
-        println(data + " " + timestr);
+        try 
+        {
+        data = Integer.valueOf(datastr.trim());
+        time = Float.valueOf(timestr.trim());
+        }
+        catch (Exception e)
+        {
+            ;
+        }
     }
 }
 
-String readuntil(String s, char c)
-{
-    if (s != "" && s != null)
-    {
-        int index = s.indexOf(c);
-        if (index != -1)
-        {
-            String newstr = s.substring(0, index);
-            return newstr;
-        }
-        else
-        {
-            return "";
-        }
-    }
-    else 
-    {
-        return "";
-    }
-}
-
-// Kind of slow, so is readuntil(). Works for now though.
 String readbetween(String s, char f, char t)
 {
     if (s != "" && s != null)

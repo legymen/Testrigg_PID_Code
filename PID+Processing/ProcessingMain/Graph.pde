@@ -1,3 +1,5 @@
+float scale = 20;
+float graphtime = 0;
 
 class Graph {
     float xpos, ypos;
@@ -17,7 +19,8 @@ class Graph {
     }
 
     void plot() {
-
+        
+        stroke(255,255,255);
         // Create axes
         line(xpos, ypos, xpos + length, ypos); // x-axis
         line(xpos, ypos - axisheight, xpos, ypos + axisheight); // y-axis
@@ -48,6 +51,7 @@ class Graph {
         translate(xpos, ypos); // Make origin of graph temporary origin of sketch.
         scale(1, -1); // Make positive y go upwards to fit incoming data.
 
+        graphtime = length;
         if (points.size() > 1)
         {
             for (int i = 0; i < points.size() - 1; i++)
@@ -55,7 +59,10 @@ class Graph {
                 stroke(0, 10, 255);
                 PVector p1 = points.get(i);
                 PVector p2 = points.get(i + 1);
-                line(p1.x, p1.y, p2.x, p2.y);
+                graphtime = p2.x * scale > graphtime ? p2.x * scale : graphtime;
+                scale = map(scale, 0.0, graphtime, 0.0, length);
+                line(scale*p1.x, p1.y, scale*p2.x, p2.y);
+                
             }
         }
         popMatrix();
