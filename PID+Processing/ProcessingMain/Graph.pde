@@ -73,7 +73,7 @@ class Graph {
 
     }
 
-    void updatevalues(HashMap<String, Float> data)
+    void updatevalues()
     {
         try
         {
@@ -85,5 +85,10 @@ class Graph {
             ;
         }
             
+    }
+
+    void changestate()
+    {
+        show = !show;
     }
 }

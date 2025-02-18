@@ -6,10 +6,19 @@ Serial myPort;
 String indata; // Value from Serial port.
 String estr;
 String timestr;
+String sstr;
 HashMap<String, Float> data;
 
 ArrayList<Graph> graphs;
 PFont textfont;
+
+ArrayList<Button> buttons;
+
+/* TODO:
+    In arduinoinit(): Clear values from Serial in a better way, to be able to start graphs from t = 0.
+    Make buttons able to execute their own functions (or something like that). Currently all buttons do the same thing.
+    Fix Serial::write() slowing things down (Solution may be throwing Strings out the window and sending bytes instead).
+*/
 
 public void settings() 
 {
@@ -21,6 +30,7 @@ void setup()
 {
     background(60, 60, 60);
     textAlign(CENTER, CENTER);
+    rectMode(CENTER);
     stroke(255, 255, 255);
     textfont = createFont("CascadiaCode.ttf", 18);
     textFont(textfont);
@@ -31,19 +41,32 @@ void setup()
     graphs = new ArrayList<Graph>();
     graphs.add(new Graph(width/8, height/4, "e", "Error", "e [deg]", "time [s]"));
     graphs.add(new Graph(width/2, height/4, "s", "Sum", "s [deg]", "time [s]"));
+
+    buttons = new ArrayList<Button>();
+    buttons.add(new Button(width/8 - width/40, height/4, 70, 30, 2.0, "Add", "a"));
 }
 
 void draw()
 {
     background(60, 60, 60);
+    fill(255,255,255);
     getserialinput();
 
     // Plot all shown graphs.
     for (int i = 0; i < graphs.size(); i++)
     {
         Graph current = graphs.get(i);
-        current.updatevalues(data);
-        if (current.show); current.plot();
+        current.updatevalues();
+        if (current.show)
+        {
+            current.plot();
+        }
+    }
+
+    for (int i = 0; i < buttons.size(); i++)
+    {
+        Button current = buttons.get(i);
+        current.update();
     }
 }
 
@@ -59,7 +82,6 @@ int arduinoinit(int baudRate) {
     }
 
     println("Arduino found. Baud Rate: " + baudRate, "Please wait.");
-    // TODO: Send clear-signal to Arduino with correct timing.
     delay(2000);
     myPort.clear();
     return 0;
@@ -72,12 +94,13 @@ void getserialinput()
     {  
         indata = myPort.readStringUntil('\n');
         timestr = readbetween(indata,'t','e');
-        estr = readbetween(indata, 'e', '\n');
+        estr = readbetween(indata, 'e', 's');
+        sstr = readbetween(indata, 's', '\n');
         try 
         {
             data.put("e", Float.valueOf(estr.trim()));
             data.put("t", Float.valueOf(timestr.trim()));
-            data.put("s", 3*data.get("e"));
+            data.put("s", Float.valueOf(sstr.trim()));
         }
         catch (Exception e)
         {
@@ -106,3 +129,16 @@ String readbetween(String s, char f, char t)
         return "";
     }
 }
+
+void mousePressed()
+{
+    for (int i = 0; i < buttons.size(); i++)
+    {
+        Button current = buttons.get(i);
+        if (current.hovered)
+        {
+            current.clicked();
+        }
+    }
+}
+
