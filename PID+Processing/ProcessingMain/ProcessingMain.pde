@@ -1,15 +1,14 @@
 import processing.serial.*;
+import java.util.Map;
 
 // Arduino variables.
 Serial myPort;
 String indata; // Value from Serial port.
-String datastr;
+String estr;
 String timestr;
-int data;
-float time;
+HashMap<String, Float> data;
 
 ArrayList<Graph> graphs;
-PVector epoint;
 PFont textfont;
 
 public void settings() 
@@ -28,25 +27,24 @@ void setup()
 
     while (arduinoinit(921600) != 0) {delay(2000);};
 
+    data = new HashMap<String, Float>();
     graphs = new ArrayList<Graph>();
-    graphs.add(new Graph(width/8, height/4, "Error", "e [deg]", "time [s]"));
+    graphs.add(new Graph(width/8, height/4, "e", "Error", "e [deg]", "time [s]"));
+    graphs.add(new Graph(width/2, height/4, "s", "Sum", "s [deg]", "time [s]"));
 }
 
 void draw()
 {
-    getserialinput();
     background(60, 60, 60);
+    getserialinput();
 
     // Plot all shown graphs.
     for (int i = 0; i < graphs.size(); i++)
     {
         Graph current = graphs.get(i);
-        println(time);
-        epoint = new PVector(time, data);
-        current.updatevalues(epoint);
+        current.updatevalues(data);
         if (current.show); current.plot();
     }
-
 }
 
 int arduinoinit(int baudRate) {
@@ -61,25 +59,25 @@ int arduinoinit(int baudRate) {
     }
 
     println("Arduino found. Baud Rate: " + baudRate, "Please wait.");
-    // TODO: Send clear-signal to Arduino.
+    // TODO: Send clear-signal to Arduino with correct timing.
     delay(2000);
     myPort.clear();
     return 0;
 }
 
-// TODO: Since only numbers are being sent through the Serial from the Arduino, maybe sending bytes would be faster?
 void getserialinput()
 {
     // If data is available.
     if (myPort.available() > 0) 
     {  
         indata = myPort.readStringUntil('\n');
-        datastr = readbetween(indata,'d','t');
-        timestr = readbetween(indata, 't', '\n');
+        timestr = readbetween(indata,'t','e');
+        estr = readbetween(indata, 'e', '\n');
         try 
         {
-        data = Integer.valueOf(datastr.trim());
-        time = Float.valueOf(timestr.trim());
+            data.put("e", Float.valueOf(estr.trim()));
+            data.put("t", Float.valueOf(timestr.trim()));
+            data.put("s", 3*data.get("e"));
         }
         catch (Exception e)
         {
