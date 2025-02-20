@@ -9,7 +9,7 @@ float I = 0;
 float D = 0;
 
 void setup() {
-  Serial.begin(921600);
+  Serial.begin(115200);
 }
 
 void loop() {
@@ -34,10 +34,9 @@ void loop() {
 
   I += kI;
 
-  unsigned long e = micros();
   unsigned long time = micros();
-  Serial.print("t"); Serial.print(time/1000000.0, 1); Serial.print("e"); Serial.print((e/1000000.0) + kP, 1), Serial.print("s"), Serial.println(I);
+  Serial.print("t"); Serial.print(time/1000000.0, 1); Serial.print("e"); Serial.print((time/1000000.0) + kP, 1), Serial.print("s"), Serial.println(I);
 
-  delay(30);
+  delay(50);
 }
 

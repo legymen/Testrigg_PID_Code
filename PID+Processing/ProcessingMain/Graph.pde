@@ -61,7 +61,7 @@ class Graph {
             for (int i = 0; i < points.size() - 1; i++)
             {
                 stroke(0, 10, 255);
-                strokeWeight(1.6);
+                strokeWeight(2.0);
                 PVector p1 = points.get(i);
                 PVector p2 = points.get(i + 1);
                 graphtime = p2.x * scale > graphtime ? p2.x * scale : graphtime;

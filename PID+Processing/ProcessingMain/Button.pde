@@ -17,6 +17,9 @@ class Button {
 
     void update()
     {   
+        textSize(15);
+        stroke(0,0,0);
+        strokeWeight(1.0);
         if (mouseX > (xpos - butwidth/2) && mouseX < (xpos + butwidth/2) && mouseY > (ypos - butheight/2) && (mouseY < ypos + butheight/2))
         {
             fill(220, 220, 220);
@@ -30,11 +33,61 @@ class Button {
         rect(xpos, ypos, butwidth, butheight, butradius);
         fill(0,0,0);
         text(label, xpos, ypos);
+
+        if (mouseClicked && hovered)
+        {
+            clicked();
+        }
     }
 
     void clicked()
+    {   
+        if (id == "p" || id == "i" || id == "d")
+        {
+            changepidconst(id);
+        }
+        delay(50);
+    }
+
+    void changepidconst(String id)
     {
-        myPort.write("i\n1\n");
-        delay(500);
+        float val = grabvalue(id);
+        if (val != -1)
+        {        
+            switch (id)
+            {
+                case "p":
+                    kP = val;
+                    break;
+                case "i":
+                    kI = val;
+                    break;
+                case "d":
+                    kD = val;
+                    break;
+            }
+            myPort.write(id+"\n"+val+"\n");
+        }
+    }
+
+    float grabvalue(String id)
+    {
+        int i = findcorresponding(id);
+        if (i == -1) {return -1;}
+        float value = (inputfields.get(i)).getvalue();
+        println(value);
+        return value;
+    }
+
+    int findcorresponding(String id)
+    {
+        for (int i = 0; i < inputfields.size(); i++)
+        {
+            if ((inputfields.get(i)).id == id)
+            {
+                return i;
+            }
+        }
+        return -1;
     }
 }

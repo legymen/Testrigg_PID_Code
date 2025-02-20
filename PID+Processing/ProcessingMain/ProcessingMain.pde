@@ -9,15 +9,23 @@ String timestr;
 String sstr;
 HashMap<String, Float> data;
 
+// Chose to have these as variables because then classes can have different checks for them, instead of the built in functions having to go through every object just to tell them a key or a mouse button has been pressed.
+boolean mouseClicked = false;
+boolean keyClicked = false;
+
+float kP = 0, kI = 0, kD = 0;
+float constbuttonx, constbuttony;
+
 ArrayList<Graph> graphs;
+ArrayList<Button> buttons;
+ArrayList<InputField> inputfields;
 PFont textfont;
 
-ArrayList<Button> buttons;
+// Note, inputfields can be connected to buttons by giving them the same id!
 
 /* TODO:
     In arduinoinit(): Clear values from Serial in a better way, to be able to start graphs from t = 0.
-    Make buttons able to execute their own functions (or something like that). Currently all buttons do the same thing.
-    Fix Serial::write() slowing things down (Solution may be throwing Strings out the window and sending bytes instead).
+    Make user able to submit inputfields by pressing ENTER, not only by a button as it currently is.
 */
 
 public void settings() 
@@ -34,8 +42,8 @@ void setup()
     stroke(255, 255, 255);
     textfont = createFont("CascadiaCode.ttf", 18);
     textFont(textfont);
-
-    while (arduinoinit(921600) != 0) {delay(2000);};
+ 
+    while (arduinoinit(115200) != 0) {delay(2000);}; // MPU-6050 *might* work better with 115200 as baudrate as compared to 921600.
 
     data = new HashMap<String, Float>();
     graphs = new ArrayList<Graph>();
@@ -43,7 +51,17 @@ void setup()
     graphs.add(new Graph(width/2, height/4, "s", "Sum", "s [deg]", "time [s]"));
 
     buttons = new ArrayList<Button>();
-    buttons.add(new Button(width/8 - width/40, height/4, 70, 30, 2.0, "Add", "a"));
+
+    constbuttonx = width/1.05;
+    constbuttony = height/4;
+    buttons.add(new Button(constbuttonx, constbuttony-(height/20), width/25.7, height/33.3, 5.0, "Change", "p"));
+    buttons.add(new Button(constbuttonx, constbuttony, width/25.7, height/33.3, 5.0, "Change", "i"));
+    buttons.add(new Button(constbuttonx, constbuttony+(height/20), width/25.7, height/33.3, 5.0, "Change", "d"));
+
+    inputfields = new ArrayList<InputField>();
+    inputfields.add(new InputField(constbuttonx - (width/17), constbuttony-(height/20), 100, 40, "p"));
+    inputfields.add(new InputField(constbuttonx - (width/17), constbuttony, 100, 40, "i"));
+    inputfields.add(new InputField(constbuttonx - (width/17), constbuttony+(height/20), 100, 40, "d"));
 }
 
 void draw()
@@ -63,11 +81,24 @@ void draw()
         }
     }
 
+    // Update buttons.
     for (int i = 0; i < buttons.size(); i++)
     {
         Button current = buttons.get(i);
         current.update();
     }
+
+    // Update inputfields.
+    for (int i = 0; i < inputfields.size(); i++)
+    {
+        InputField current = inputfields.get(i);
+        current.update();
+    }
+
+    plotinfo();
+
+    mouseClicked = false;
+    keyClicked = false;
 }
 
 int arduinoinit(int baudRate) {
@@ -132,13 +163,24 @@ String readbetween(String s, char f, char t)
 
 void mousePressed()
 {
-    for (int i = 0; i < buttons.size(); i++)
-    {
-        Button current = buttons.get(i);
-        if (current.hovered)
-        {
-            current.clicked();
-        }
-    }
+    mouseClicked = true;
+} 
+
+void keyPressed()
+{
+    keyClicked = true;
 }
 
+// Draws general info about the Regulator to the screen.
+void plotinfo()
+{
+    textSize(20);
+    fill(255,255,255);
+    text("K = " + kP, constbuttonx - width/8, constbuttony - (height/20));
+    text("K = " + kI, constbuttonx - width/8, constbuttony);
+    text("K = " + kD, constbuttonx - width/8, constbuttony + (height/20));
+    textSize(12);
+    text("p", constbuttonx - width/7.2, height/4 - (height/20) + height/115);
+    text("i", constbuttonx - width/7.2, height/4 + height/115);
+    text("d", constbuttonx - width/7.2, height/4 + (height/20) + height/115);
+}
