@@ -14,35 +14,41 @@ boolean mouseClicked = false;
 boolean keyClicked = false;
 
 float kP = 0, kI = 0, kD = 0;
-float constbuttonx, constbuttony;
+float constfieldx, constfieldy;
 
 ArrayList<Graph> graphs;
 ArrayList<Button> buttons;
 ArrayList<InputField> inputfields;
 PFont textfont;
 
-// Note, inputfields can be connected to buttons by giving them the same id!
+float lastW;
+float lastH;
+float scaleX = 1;
+float scaleY = 1;
 
 /* TODO:
     In arduinoinit(): Clear values from Serial in a better way, to be able to start graphs from t = 0.
-    Make user able to submit inputfields by pressing ENTER, not only by a button as it currently is.
+    Look for bugs with window resizing.
 */
 
 public void settings() 
 {
-    //fullScreen(); // Should OpenGL be used as renderer?
-    size(1800,1000);
+    //fullScreen(P2D); // Should OpenGL be used as renderer?
+    size(1800,1000, P2D);
+    smooth(4);
 }
 
 void setup()
-{
-    background(60, 60, 60);
+{   
+    surface.setResizable(true);
+    surface.setTitle("PID-Regulator");
+    background(#12153c);
     textAlign(CENTER, CENTER);
     rectMode(CENTER);
     stroke(255, 255, 255);
     textfont = createFont("CascadiaCode.ttf", 18);
     textFont(textfont);
- 
+    
     while (arduinoinit(115200) != 0) {delay(2000);}; // MPU-6050 *might* work better with 115200 as baudrate as compared to 921600.
 
     data = new HashMap<String, Float>();
@@ -52,21 +58,25 @@ void setup()
 
     buttons = new ArrayList<Button>();
 
-    constbuttonx = width/1.05;
-    constbuttony = height/4;
-    buttons.add(new Button(constbuttonx, constbuttony-(height/20), width/25.7, height/33.3, 5.0, "Change", "p"));
-    buttons.add(new Button(constbuttonx, constbuttony, width/25.7, height/33.3, 5.0, "Change", "i"));
-    buttons.add(new Button(constbuttonx, constbuttony+(height/20), width/25.7, height/33.3, 5.0, "Change", "d"));
-
     inputfields = new ArrayList<InputField>();
-    inputfields.add(new InputField(constbuttonx - (width/17), constbuttony-(height/20), 100, 40, "p"));
-    inputfields.add(new InputField(constbuttonx - (width/17), constbuttony, 100, 40, "i"));
-    inputfields.add(new InputField(constbuttonx - (width/17), constbuttony+(height/20), 100, 40, "d"));
+    inputfields.add(new InputField(width/1.176, height/5.0, width/18, height/(1000/30), "p"));
+    inputfields.add(new InputField(width/1.176, height/4.0, width/18, height/(1000/30), "i"));
+    inputfields.add(new InputField(width/1.176, height/3.33, width/18, height/(1000/30), "d"));
+
+    lastW = width;
+    lastH = height;
 }
 
 void draw()
 {
-    background(60, 60, 60);
+    if (lastW != width || lastH != height)
+    {
+        scaleX = width/lastW;
+        scaleY = height/lastH;
+    }
+    scale(scaleX, scaleY);
+
+    background(#12153c);
     fill(255,255,255);
     getserialinput();
 
@@ -175,12 +185,28 @@ void keyPressed()
 void plotinfo()
 {
     textSize(20);
+    textAlign(CENTER, CENTER);
     fill(255,255,255);
-    text("K = " + kP, constbuttonx - width/8, constbuttony - (height/20));
-    text("K = " + kI, constbuttonx - width/8, constbuttony);
-    text("K = " + kD, constbuttonx - width/8, constbuttony + (height/20));
-    textSize(12);
-    text("p", constbuttonx - width/7.2, height/4 - (height/20) + height/115);
-    text("i", constbuttonx - width/7.2, height/4 + height/115);
-    text("d", constbuttonx - width/7.2, height/4 + (height/20) + height/115);
+    text("P = " + kP, width/(scaleX*1.176) - width/(scaleX*16), height/(scaleY*5));
+    text("I = " + kI, width/(scaleX*1.176) - width/(scaleX*16), height/(scaleY*4));
+    text("D = " + kD, width/(scaleX*1.176) - width/(scaleX*16), height/(scaleY*3.33));
+}
+
+void changepidconst(String id, float val)
+{
+    switch (id)
+    {
+            case "p":
+                kP = val;
+                break;
+            case "i":
+                kI = val;
+                break;
+            case "d":
+                kD = val;
+                break;
+            default:
+                break;
+    }
+    myPort.write(id+"\n"+val+"\n");
 }

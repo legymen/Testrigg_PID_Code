@@ -45,7 +45,7 @@ class Graph {
 
         // Render text.
         textSize(15);
-        text(xlabel, xpos + length + (length/10), ypos);
+        text(xlabel, xpos + length + (length/8), ypos);
         text(ylabel, xpos, ypos -axisheight - (axisheight/10));
         textSize(20);
         text(title, xpos + length/2, ypos - axisheight/0.9);
@@ -60,7 +60,7 @@ class Graph {
         {
             for (int i = 0; i < points.size() - 1; i++)
             {
-                stroke(0, 10, 255);
+                stroke(255, 10, 0);
                 strokeWeight(2.0);
                 PVector p1 = points.get(i);
                 PVector p2 = points.get(i + 1);

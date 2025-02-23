@@ -20,22 +20,22 @@ void loop() {
     String value = Serial.readStringUntil('\n');
     if (switchletter.equals("p"))
     {
-      kP = value.toInt();
+      kP = value.toFloat();
     }
     else if (switchletter.equals("i"))
     {
-      kI = value.toInt();
+      kI = value.toFloat();
     }
     else if (switchletter.equals("d"))
     {
-      kD = value.toInt();
+      kD = value.toFloat();
     }
   }
 
   I += kI;
 
   unsigned long time = micros();
-  Serial.print("t"); Serial.print(time/1000000.0, 1); Serial.print("e"); Serial.print((time/1000000.0) + kP, 1), Serial.print("s"), Serial.println(I);
+  Serial.print("t"); Serial.print(time/1000000.0, 2); Serial.print("e"); Serial.print((time/1000000.0) + kP, 2), Serial.print("s"), Serial.println(I, 2);
 
   delay(50);
 }
