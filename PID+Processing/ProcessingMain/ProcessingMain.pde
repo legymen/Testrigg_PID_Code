@@ -19,6 +19,7 @@ float constfieldx, constfieldy;
 ArrayList<Graph> graphs;
 ArrayList<Button> buttons;
 ArrayList<InputField> inputfields;
+ArrayList<Slider> sliders;
 PFont textfont;
 
 float lastW;
@@ -29,6 +30,8 @@ float scaleY = 1;
 /* TODO:
     In arduinoinit(): Clear values from Serial in a better way, to be able to start graphs from t = 0.
     Look for bugs with window resizing.
+    Add PID-Regulator code in the Arduino file.
+    Add "snapshot" function.
 */
 
 public void settings() 
@@ -55,13 +58,15 @@ void setup()
     graphs = new ArrayList<Graph>();
     graphs.add(new Graph(width/8, height/4, "e", "Error", "e [deg]", "time [s]"));
     graphs.add(new Graph(width/2, height/4, "s", "Sum", "s [deg]", "time [s]"));
+    graphs.add(new Graph(width/8, height/1.5, "pow", "Power", "", "time [s]"));
 
     buttons = new ArrayList<Button>();
+    sliders = new ArrayList<Slider>();
 
     inputfields = new ArrayList<InputField>();
-    inputfields.add(new InputField(width/1.176, height/5.0, width/18, height/(1000/30), "p"));
-    inputfields.add(new InputField(width/1.176, height/4.0, width/18, height/(1000/30), "i"));
-    inputfields.add(new InputField(width/1.176, height/3.33, width/18, height/(1000/30), "d"));
+    inputfields.add(new InputField(width/1.5, height/1.5 - height/18, width/18, height/(1000/30), "p", true));
+    inputfields.add(new InputField(width/1.5, height/1.5, width/18, height/(1000/30), "i", true));
+    inputfields.add(new InputField(width/1.5, height/1.5 + height/18, width/18, height/(1000/30), "d", true));
 
     lastW = width;
     lastH = height;
@@ -102,6 +107,13 @@ void draw()
     for (int i = 0; i < inputfields.size(); i++)
     {
         InputField current = inputfields.get(i);
+        current.update();
+    }
+
+     // Update sliders.
+    for (int i = 0; i < sliders.size(); i++)
+    {
+        Slider current = sliders.get(i);
         current.update();
     }
 
@@ -187,9 +199,11 @@ void plotinfo()
     textSize(20);
     textAlign(CENTER, CENTER);
     fill(255,255,255);
-    text("P = " + kP, width/(scaleX*1.176) - width/(scaleX*16), height/(scaleY*5));
-    text("I = " + kI, width/(scaleX*1.176) - width/(scaleX*16), height/(scaleY*4));
-    text("D = " + kD, width/(scaleX*1.176) - width/(scaleX*16), height/(scaleY*3.33));
+    text("P = " + kP, width/(scaleX*1.5) - width/(scaleX*16), height/(scaleY*1.5) - height/(scaleY * 18));
+    text("I = " + kI, width/(scaleX*1.5) - width/(scaleX*16), height/(scaleY*1.5));
+    text("D = " + kD, width/(scaleX*1.5) - width/(scaleX*16), height/(scaleY*1.5) + height/(scaleY * 18));
+
+    text("FOR DEBUGGING, FPS: " + round(frameRate), width/10, height/30);
 }
 
 void changepidconst(String id, float val)

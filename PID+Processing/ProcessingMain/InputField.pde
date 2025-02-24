@@ -1,21 +1,20 @@
 
 /* TODO:
     Generalize the submit() class a bit.
-    Add max writing length.
 */
 
 class InputField {
     float xpos, ypos, w, h;
     String id;
-    boolean activated = false;
-    boolean clicked = false;
+    boolean activated = false, clicked = false, includeslider;
     ArrayList<Character> input;
     String inputstr;
     Button correspondingbutton;
     color c;
     int tsize = 20;
+    Slider slider;
 
-    InputField(float _xpos, float _ypos, float _w, float _h, String _id)
+    InputField(float _xpos, float _ypos, float _w, float _h, String _id, boolean _includeslider)
     {
         xpos = _xpos;
         ypos = _ypos;
@@ -23,10 +22,17 @@ class InputField {
         h = _h;
         id = _id;
         input = new ArrayList<Character>();
+        includeslider = _includeslider;
 
         // Create input button.
         buttons.add(new Button(xpos + w/2 + width/42, ypos, width/25.7, height/33.3, 5.0, "Submit", id));
         correspondingbutton = buttons.get(buttons.size() - 1);
+
+        if (includeslider)
+        {
+            sliders.add(new Slider(xpos + w/2 + width/20, ypos, 0, 40, id));
+            slider = sliders.get(sliders.size() - 1);
+        }
     }
 
     void update()
@@ -57,7 +63,7 @@ class InputField {
         {
             input.remove(input.size() - 1);
         }
-        else if (clicked && keyClicked && key != BACKSPACE && key != CODED)
+        else if (clicked && keyClicked && key != BACKSPACE && key != CODED && input.size() < 6)
         {
             if (Character.isDigit(key))
             {
@@ -67,6 +73,20 @@ class InputField {
             {
                 if (key == ',') key = '.';
                 input.add(key);
+            }
+        }
+
+        if (includeslider && !slider.dragging) 
+        {
+            slider.val = input.size() == 0 ? 0 : float(inputstr);
+        } 
+        else if (includeslider)
+        {
+            input.clear();
+            String sliderstr = str(round(100*slider.val)/100.0);
+            for (int i = 0; i < sliderstr.length(); i++)
+            {
+                input.add(sliderstr.charAt(i));
             }
         }
 

@@ -1,8 +1,5 @@
 import java.util.Map;
 
-float scale = 20;
-float graphtime = 0;
-
 class Graph {
     float xpos, ypos;
     String title, id, ylabel, xlabel;
@@ -10,6 +7,11 @@ class Graph {
     boolean show = true;
     float length = width/5;
     float axisheight = height/8;
+    float xscale = 20;
+    float yscale = 1;
+    float graphtime = 0;
+    float graphheight = 0;
+
     Graph(float _xpos, float _ypos, String _id, String _title, String _ylabel, String _xlabel)
     {
         xpos = _xpos;
@@ -56,6 +58,7 @@ class Graph {
         scale(1, -1); // Make positive y go upwards to fit incoming data.
 
         graphtime = length;
+        graphheight = axisheight;
         if (points.size() > 1)
         {
             for (int i = 0; i < points.size() - 1; i++)
@@ -64,9 +67,11 @@ class Graph {
                 strokeWeight(2.0);
                 PVector p1 = points.get(i);
                 PVector p2 = points.get(i + 1);
-                graphtime = p2.x * scale > graphtime ? p2.x * scale : graphtime;
-                scale = map(scale, 0.0, graphtime, 0.0, length);
-                line(scale*p1.x, p1.y, scale*p2.x, p2.y); 
+                graphtime = p2.x * xscale > graphtime ? p2.x * xscale : graphtime;
+                graphheight = p2.y * yscale > graphheight ? p2.y * yscale : graphheight;
+                xscale = map(xscale, 0.0, graphtime, 0.0, length);
+                yscale = map(yscale, 0.0, graphheight, 0.0, axisheight);
+                line(xscale*p1.x, yscale*p1.y, xscale*p2.x, yscale*p2.y); 
             }
         }
         popMatrix();
